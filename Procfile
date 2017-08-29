@@ -1,1 +1,1 @@
-bot: ruby yatut.rb
+bot: python3 bot.rb
