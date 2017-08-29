@@ -1,1 +1,1 @@
-bot: python bot.rb
+bot: python src/bot.rb
