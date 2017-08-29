@@ -10,8 +10,8 @@ import pdb
 token = "350061682:AAE6T7Gq_9Wj9jafF8HBXdSPYg0QRB2Xyi0"
 bot = telebot.TeleBot(token)
 subjects_url = "http://yatut.herokuapp.com/subjects.json"
-attendances_url = "http://yatut.herokuapp.com/subjects/1/attendances.json"
-
+global attendances_url
+attendances_url = "http://yatut.herokuapp.com/subjects/%s/attendances.json"
 def get_url(url):
     response = requests.get(url)
     content = response.content.decode("utf8")
@@ -19,23 +19,15 @@ def get_url(url):
 
 
 def get_json_from_url(url):
-    content = get_url(url)
-    sub_dic = json.loads(content)
-    return sub_dic
-
-
+	content = get_url(url)
+	sub_dic = json.loads(content)
+	return sub_dic
 @bot.message_handler(commands=["subjects"])
 def get_subjects(message):
-	
 	sub_list = get_json_from_url(subjects_url)
 
 	lst = {d['id']:d['name'] for d in sub_list}
-	# print(lst)
-	# # for i in sub_dict:
-	# for key, value in lst.items():
-	# 	print(str(key) + " " +value)
 
-	# pdb.set_trace()
 	keyboard = types.InlineKeyboardMarkup()	
 	keyboard.add(*[types.InlineKeyboardButton(text=name, callback_data=str(id)) for id, name in lst.items()])
 	bot.send_message(message.chat.id, "Выбери предмет", reply_markup=keyboard)
@@ -43,30 +35,33 @@ def get_subjects(message):
 
 @bot.callback_query_handler(func=lambda c: True)
 def inline(c):
-	print(c.data)
 	sub_list = get_json_from_url(subjects_url)
 	lst = {d['id']:d['name'] for d in sub_list}
-	name = lst[int(c.data)]
-	bot.edit_message_text(
-	chat_id=c.message.chat.id,
-	message_id = c.message.message_id,
-	text = "You chose %s" % name,
-	parse_mode="Markdown")
+	global subject_id
+	subject_id = c.data
 
-@bot.message_handler(commands=["location"])
-def geophone(message):
+	name = lst[int(c.data)]
+	bot.send_message(
+	chat_id=c.message.chat.id,
+	text = "Вы выбрали %s" % name)
 	keyboard = types.ReplyKeyboardMarkup()
 	button_geo = types.KeyboardButton(text="Отправить местоположение", request_location=True)
 	keyboard.add(button_geo)
-	bot.send_message(message.chat.id, "Поделись местоположением, жалкий человечишка!", reply_markup=keyboard)
+	bot.send_message(c.message.chat.id, "Теперь отправьте мне ваше местоположение", reply_markup=keyboard)
+	
 
 @bot.message_handler(content_types=["location"])
 def handle_location(message):
 	headers = {"Content-Type": "application/json"}
+	att_url = attendances_url % subject_id
+	
 	payload = {"first_name": message.chat.first_name,"last_name": message.chat.last_name,"longitude": message.location.longitude,"latitude": message.location.latitude}
-	r = requests.post(attendances_url, headers=headers, data = json.dumps(payload))
-	bot.send_message(message.chat.id, message.location.latitude)
-	print(r.json())
+	r = requests.post(att_url, headers=headers, data = json.dumps(payload))
+
+	if (r.status_code == 403):
+		bot.send_message(message.chat.id, "Проверка местоположения неуспешна. Вы не в зоне радиуса. Попробуйте подойти ближе к зоне радиусе и заново пройдите проверку")		
+	elif (r.status_code == 201):
+		bot.send_message(message.chat.id, "Проверка местоположения успешна")
 
 @bot.message_handler(commands=["start", "help"])
 def send_welcome(message):

@@ -1,1 +1,1 @@
-bot: python3 bot.rb
+bot: python bot.rb
