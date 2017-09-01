@@ -25,11 +25,14 @@ def get_json_from_url(url):
 	content = get_url(url)
 	sub_dic = json.loads(content)
 	return sub_dic
+
 @bot.message_handler(commands=["subjects"])
 def get_subjects(message):
 	sub_list = get_json_from_url(subjects_url)
-
-	lst = {d['id']:d['name'] for d in sub_list}
+	if len(sub_list) == 1:
+		pdb.set_trace()
+	else:
+		lst = {d['id']:d['name'] for d in sub_list}
 
 	keyboard = types.InlineKeyboardMarkup()	
 	keyboard.add(*[types.InlineKeyboardButton(text=name, callback_data=str(id)) for id, name in lst.items()])
