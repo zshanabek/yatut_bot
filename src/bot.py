@@ -30,7 +30,7 @@ def get_json_from_url(url):
 def get_subjects(message):
 	sub_list = get_json_from_url(subjects_url)
 	if len(sub_list) == 1:
-		pdb.set_trace()
+		bot.send_message(message.chat.id, "Один предмет")		
 	else:
 		lst = {d['id']:d['name'] for d in sub_list}
 
