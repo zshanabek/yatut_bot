@@ -17,6 +17,9 @@ def get_url(url):
     content = response.content.decode("utf8")
     return content
 
+@bot.message_handler(commands=["help"])
+def handle_help(message):
+	bot.send_message(message.chat.id, "Это бот для проверки посещаемости. Отправьте команду /subjects чтобы получить список доступных занятий")	
 
 def get_json_from_url(url):
 	content = get_url(url)
