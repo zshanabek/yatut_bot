@@ -19,21 +19,23 @@ def get_url(url):
 
 @bot.message_handler(commands=["help"])
 def handle_help(message):
-	bot.send_message(message.chat.id, "Это бот для проверки посещаемости. Отправьте команду /subjects чтобы получить список доступных занятий")	
+	bot.send_message(message.chat.id, "Это бот для проверки посещаемости. Отправьте мне команду /attendance чтобы получить список доступных занятий")	
 
 def get_json_from_url(url):
 	content = get_url(url)
 	sub_dic = json.loads(content)
 	return sub_dic
 
-@bot.message_handler(commands=["subjects"])
+@bot.message_handler(commands=["attendance"])
 def get_subjects(message):
 	sub_list = get_json_from_url(subjects_url)
 	if len(sub_list) == 1:
-		bot.send_message(message.chat.id, "Один предмет")		
+		bot.send_message(message.chat.id, "Здесь только один предмет")	
+		i = sub_list[0]['id']
+		name = sub_list[0]['name']
+		lst = {i:name}
 	else:
 		lst = {d['id']:d['name'] for d in sub_list}
-
 	keyboard = types.InlineKeyboardMarkup()	
 	keyboard.add(*[types.InlineKeyboardButton(text=name, callback_data=str(id)) for id, name in lst.items()])
 	bot.send_message(message.chat.id, "Выбери предмет", reply_markup=keyboard)
@@ -50,11 +52,10 @@ def inline(c):
 	bot.send_message(
 	chat_id=c.message.chat.id,
 	text = "Вы выбрали %s" % name)
-	keyboard = types.ReplyKeyboardMarkup()
+	keyboard = types.ReplyKeyboardMarkup(one_time_keyboard=True)
 	button_geo = types.KeyboardButton(text="Отправить местоположение", request_location=True)
 	keyboard.add(button_geo)
 	bot.send_message(c.message.chat.id, "Теперь отправьте мне ваше местоположение", reply_markup=keyboard)
-	
 
 @bot.message_handler(content_types=["location"])
 def handle_location(message):
@@ -73,6 +74,7 @@ def handle_location(message):
 		elif (r.status_code == 201):
 			bot.send_message(message.chat.id, "Проверка местоположения успешна")
 
+		
 @bot.message_handler(commands=["start", "help"])
 def send_welcome(message):
 	bot.reply_to(message, "Howdy, how are you doing?")
