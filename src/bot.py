@@ -6,6 +6,7 @@ import time
 from telebot import types
 import urllib.parse
 import pdb
+from datetime import datetime
 
 token = "350061682:AAE6T7Gq_9Wj9jafF8HBXdSPYg0QRB2Xyi0"
 bot = telebot.TeleBot(token)
@@ -65,7 +66,7 @@ def handle_location(message):
 		bot.send_message(message.chat.id, "Сперва выберите предмет. Для этого введите команду /subjects")
 	else:
 		att_url = attendances_url % subject_id
-		payload = {"first_name": message.chat.first_name,"last_name": message.chat.last_name,"longitude": message.location.longitude,"latitude": message.location.latitude}
+		payload = {"first_name": message.chat.first_name,"last_name": message.chat.last_name,"longitude": message.location.longitude,"latitude": message.location.latitude, "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 		r = requests.post(att_url, headers=headers, data = json.dumps(payload))
 
 		if (r.status_code == 403):
