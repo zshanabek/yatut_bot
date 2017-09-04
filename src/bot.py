@@ -19,7 +19,7 @@ def get_url(url):
 
 @bot.message_handler(commands=["help"])
 def handle_help(message):
-	bot.send_message(message.chat.id, "Это бот для проверки посещаемости. Отправьте команду /subjects чтобы получить список доступных занятий")	
+	bot.send_message(message.chat.id, "Это бот для проверки посещаемости. Отправьте команду /subjects чтобы получить список доступных занятий")
 
 def get_json_from_url(url):
 	content = get_url(url)
@@ -30,14 +30,14 @@ def get_json_from_url(url):
 def get_subjects(message):
 	sub_list = get_json_from_url(subjects_url)
 	if len(sub_list) == 1:
-		bot.send_message(message.chat.id, "Один предмет")		
+		bot.send_message(message.chat.id, "Один предмет")
 	else:
 		lst = {d['id']:d['name'] for d in sub_list}
 
-	keyboard = types.InlineKeyboardMarkup()	
+	keyboard = types.InlineKeyboardMarkup()
 	keyboard.add(*[types.InlineKeyboardButton(text=name, callback_data=str(id)) for id, name in lst.items()])
-	bot.send_message(message.chat.id, "Выбери предмет", reply_markup=keyboard)
-	
+	bot.send_message(message.chat.id, "Выберите предмет", reply_markup=keyboard)
+
 
 @bot.callback_query_handler(func=lambda c: True)
 def inline(c):
@@ -54,7 +54,7 @@ def inline(c):
 	button_geo = types.KeyboardButton(text="Отправить местоположение", request_location=True)
 	keyboard.add(button_geo)
 	bot.send_message(c.message.chat.id, "Теперь отправьте мне ваше местоположение", reply_markup=keyboard)
-	
+
 
 @bot.message_handler(content_types=["location"])
 def handle_location(message):
@@ -69,13 +69,9 @@ def handle_location(message):
 		r = requests.post(att_url, headers=headers, data = json.dumps(payload))
 
 		if (r.status_code == 403):
-			bot.send_message(message.chat.id, "Проверка местоположения неуспешна. Вы не в зоне радиуса. Попробуйте подойти ближе к зоне радиусе и заново пройдите проверку")		
+			bot.send_message(message.chat.id, "Проверка местоположения неуспешна. Вы не в зоне радиуса. Попробуйте подойти к центру аудитории и заново пройти проверку.")
 		elif (r.status_code == 201):
-			bot.send_message(message.chat.id, "Проверка местоположения успешна")
-
-@bot.message_handler(commands=["start", "help"])
-def send_welcome(message):
-	bot.reply_to(message, "Howdy, how are you doing?")
+			bot.send_message(message.chat.id, "Проверка местоположения успешно пройдена.")
 
 if __name__ == "__main__":
      bot.polling(none_stop=True)
