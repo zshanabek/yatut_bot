@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 import telebot
+from telebot import types
 import json
 import requests
 import time
-from telebot import types
 import urllib.parse
 import pdb
-from datetime import datetime
+import datetime
+from tzwhere import tzwhere
+import pytz
+
 
 token = "350061682:AAE6T7Gq_9Wj9jafF8HBXdSPYg0QRB2Xyi0"
 bot = telebot.TeleBot(token)
+
+
 subjects_url = "http://yatut.herokuapp.com/subjects.json"
 global attendances_url
 attendances_url = "http://yatut.herokuapp.com/subjects/%s/attendances.json"
@@ -21,6 +26,11 @@ def get_url(url):
 @bot.message_handler(commands=["help"])
 def handle_help(message):
 	bot.send_message(message.chat.id, "Это бот для проверки посещаемости. Отправьте команду /subjects чтобы получить список доступных занятий")
+
+@bot.message_handler(commands=["start"])
+def handle_start(message):
+	bot.send_message(message.chat.id, "Привет. Как дела?")
+
 
 def get_json_from_url(url):
 	content = get_url(url)
@@ -66,7 +76,15 @@ def handle_location(message):
 		bot.send_message(message.chat.id, "Сперва выберите предмет. Для этого введите команду /subjects")
 	else:
 		att_url = attendances_url % subject_id
-		payload = {"first_name": message.chat.first_name,"last_name": message.chat.last_name,"longitude": message.location.longitude,"latitude": message.location.latitude, "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+		lat = message.location.latitude
+		lng = message.location.longitude
+		zone = tzwhere.tzwhere()
+		timezone_str = zone.tzNameAt(lat, lng)
+		timezone = pytz.timezone(timezone_str)
+		time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+		payload = {"first_name": message.chat.first_name,"last_name": message.chat.last_name,
+		"longitude": lng,"latitude": lat,
+		"created_at": time}
 		r = requests.post(att_url, headers=headers, data = json.dumps(payload))
 
 		if (r.status_code == 403):
