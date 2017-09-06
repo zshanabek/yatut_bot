@@ -9,11 +9,15 @@ import pdb
 import datetime
 from tzwhere import tzwhere
 import pytz
+import logging
+
+logger = telebot.logger
 
 
 token = "350061682:AAE6T7Gq_9Wj9jafF8HBXdSPYg0QRB2Xyi0"
 bot = telebot.TeleBot(token)
 
+telebot.logger.setLevel(logging.INFO) # Outputs debug messages to console.
 
 subjects_url = "http://yatut.herokuapp.com/subjects.json"
 global attendances_url
@@ -22,6 +26,11 @@ def get_url(url):
     response = requests.get(url)
     content = response.content.decode("utf8")
     return content
+    print("Ok! It works")
+    time.sleep(5)
+
+while True:
+    get_url(subjects_url)
 
 @bot.message_handler(commands=["help"])
 def handle_help(message):
