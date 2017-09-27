@@ -26,11 +26,6 @@ def get_url(url):
     response = requests.get(url)
     content = response.content.decode("utf8")
     return content
-    print("Ok! It works")
-    time.sleep(5)
-
-while True:
-    get_url(subjects_url)
 
 @bot.message_handler(commands=["help"])
 def handle_help(message):
@@ -57,6 +52,7 @@ def get_subjects(message):
 	keyboard = types.InlineKeyboardMarkup()
 	keyboard.add(*[types.InlineKeyboardButton(text=name, callback_data=str(id)) for id, name in lst.items()])
 	bot.send_message(message.chat.id, "Выберите предмет", reply_markup=keyboard)
+	bot.send_message(message.chat.id, lst)
 
 
 @bot.callback_query_handler(func=lambda c: True)
@@ -95,11 +91,12 @@ def handle_location(message):
 		"longitude": lng,"latitude": lat,
 		"created_at": time}
 		r = requests.post(att_url, headers=headers, data = json.dumps(payload))
+		print(json.dumps(payload))
 
 		if (r.status_code == 403):
-			bot.send_message(message.chat.id, "Проверка местоположения неуспешна. Вы не в зоне радиуса. Попробуйте подойти к центру аудитории и заново пройти проверку.")
+			bot.send_message(message.chat.id, "Ваши координаты:{0}, {1}. Проверка местоположения неуспешна. Вы не в зоне радиуса. Попробуйте подойти к центру аудитории и заново пройти проверку.".format(lat,lng))
 		elif (r.status_code == 201):
-			bot.send_message(message.chat.id, "Проверка местоположения успешно пройдена.")
+			bot.send_message(message.chat.id, "Ваши координаты:{0}, {1}. Проверка местоположения успешно пройдена.".format(lat,lng))
 
 if __name__ == "__main__":
      bot.polling(none_stop=True)
